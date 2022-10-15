@@ -1,6 +1,6 @@
-﻿using RestaurantLib.Services;
+﻿using Restaurant.Booking.Services;
 
-namespace RestaurantLib;
+namespace Restaurant.Booking;
 
 public class Restaurant
 {

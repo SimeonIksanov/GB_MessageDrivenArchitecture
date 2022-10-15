@@ -1,4 +1,4 @@
-﻿namespace RestaurantLib;
+﻿namespace Restaurant.Booking;
 
 public enum State
 {

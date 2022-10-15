@@ -1,5 +1,5 @@
 ﻿using System;
-namespace RestaurantLib.Services.Implementation;
+namespace Restaurant.Booking.Services.Implementation;
 
 public class ConsoleNotifier : INotifier
 {

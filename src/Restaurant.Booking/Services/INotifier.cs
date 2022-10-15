@@ -1,5 +1,5 @@
 ﻿using System;
-namespace RestaurantLib.Services;
+namespace Restaurant.Booking.Services;
 
 public interface INotifier
 {

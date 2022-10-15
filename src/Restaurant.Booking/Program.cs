@@ -1,9 +1,7 @@
 ﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using RestaurantLib;
-using RestaurantLib.Services.Implementation;
+using Restaurant.Booking.Services.Implementation;
 
-namespace RestaurantApp;
+namespace Restaurant.Booking;
 
 class Program
 {
@@ -43,10 +41,10 @@ class Program
             switch (choice)
             {
                 case 1:
-                    restaurant.BookFreeTableAsync(10);
+                    restaurant.BookFreeTableAsync(1);
                     break;
                 case 2:
-                    restaurant.BookFreeTable(10);
+                    restaurant.BookFreeTable(1);
                     break;
                 case 3:
                     restaurant.CancelBookingAsync(tableId);
