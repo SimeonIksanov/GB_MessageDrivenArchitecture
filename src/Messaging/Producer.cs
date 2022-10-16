@@ -5,14 +5,12 @@ namespace Messaging;
 
 public class Producer
 {
-    private readonly string _queueName;
     private readonly string _hostname;
+    private readonly string _exchangeName = "BookNotifications";
 
-
-    public Producer(string hostName, string queueName)
+    public Producer(string hostName)
     {
         _hostname = hostName;
-        _queueName = queueName;
     }
 
 
@@ -31,8 +29,8 @@ public class Producer
         using var channel = connection.CreateModel();
 
         channel.ExchangeDeclare(
-            exchange: "direct_exchange",
-            type: "direct",
+            exchange: _exchangeName,
+            type: ExchangeType.Fanout,
             durable: false,
             autoDelete: false,
             arguments: null);
@@ -40,8 +38,8 @@ public class Producer
         var body = Encoding.UTF8.GetBytes(message);
 
         channel.BasicPublish(
-            exchange: "direct_exchange",
-            routingKey: _queueName,
+            exchange: _exchangeName,
+            routingKey: "ignored",
             basicProperties: null,
             body: body);
     }

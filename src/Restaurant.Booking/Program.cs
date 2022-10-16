@@ -10,7 +10,7 @@ class Program
         Console.OutputEncoding = System.Text.Encoding.UTF8;
 
         //var restaurant = new Restaurant(new ConsoleNotifier(TimeSpan.FromSeconds(1)));
-        var restaurant = new Restaurant(new RabbitMQNotifier("goose-01.rmq2.cloudamqp.com", "BookingNotification"));
+        var restaurant = new Restaurant(new RabbitMQNotifier("goose-01.rmq2.cloudamqp.com"));
 
         while (true)
         {

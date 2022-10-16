@@ -8,9 +8,9 @@ namespace Restaurant.Booking.Services.Implementation
     {
         private readonly Producer _producer;
 
-        public RabbitMQNotifier(string hostName, string queueName)
+        public RabbitMQNotifier(string hostName)
         {
-            _producer = new Producer(hostName, queueName);
+            _producer = new Producer(hostName);
         }
 
         public void NotifyAsync(string message)

@@ -17,8 +17,8 @@ public class Restaurant
         }
         _notifier = notifier;
 
-        //_timer = new Timer(CancelBookingWithTimer);
-        //_timer.Change(TimeSpan.Zero, TimeSpan.FromSeconds(20));
+        _timer = new Timer(CancelBookingWithTimer);
+        _timer.Change(TimeSpan.Zero, TimeSpan.FromSeconds(20));
     }
 
 

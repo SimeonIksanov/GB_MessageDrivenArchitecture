@@ -11,7 +11,7 @@ internal class Worker : BackgroundService
 
     public Worker()
     {
-        _consumer = new Consumer("goose-01.rmq2.cloudamqp.com", "BookingNotification");
+        _consumer = new Consumer("goose-01.rmq2.cloudamqp.com");
     }
 
 

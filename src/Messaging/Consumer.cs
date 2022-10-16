@@ -7,12 +7,12 @@ public class Consumer : IDisposable
 {
     private readonly string _queueName;
     private readonly string _hostName;
+    private readonly string _exchangeName = "BookNotifications";
     private readonly IConnection _connection;
     private readonly IModel _channel;
 
-    public Consumer(string hostName, string queueName)
+    public Consumer(string hostName)
     {
-        _queueName = queueName;
         _hostName = hostName;
 
         var factory = new ConnectionFactory()
@@ -37,26 +37,22 @@ public class Consumer : IDisposable
     public void Receive(EventHandler<BasicDeliverEventArgs> receiveCallback)
     {
         _channel.ExchangeDeclare(
-            exchange: "direct_exchange",
-            type: "direct");
+            exchange: _exchangeName,
+            type: ExchangeType.Fanout);
 
-        _channel.QueueDeclare(
-            queue: _queueName,
-            durable: false,
-            exclusive: false,
-            autoDelete: false,
-            arguments: null);
+        var queueName = _channel.QueueDeclare().QueueName;
 
         _channel.QueueBind(
-            queue: _queueName,
-            exchange: "direct_exchange",
-            routingKey: _queueName);
+            queue: queueName,
+            exchange: _exchangeName,
+            routingKey: "" // ignored when ExchangeType.Fanout
+         );
 
         var consumer = new EventingBasicConsumer(_channel);
         consumer.Received += receiveCallback;
 
         _channel.BasicConsume(
-            queue: _queueName,
+            queue: queueName,
             autoAck: true,
             consumer: consumer);
     }
