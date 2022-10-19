@@ -8,6 +8,10 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <WarningLevel>4</WarningLevel>
+    <AssemblyName>RestaurantBooking</AssemblyName>
+  </PropertyGroup>
   <ItemGroup>
     <None Remove="Services\" />
     <None Remove="Services\Implementation\" />
@@ -15,5 +19,8 @@
   <ItemGroup>
     <Folder Include="Services\" />
     <Folder Include="Services\Implementation\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Messaging\Messaging.csproj" />
   </ItemGroup>
 </Project>
