@@ -21,21 +21,14 @@ public class Notifier
     private void Notify(Guid orderId)
     {
         var booking = _state[orderId];
-
-        switch (booking.Item2)
+        if (booking.Item2.HasFlag(Accepted.All))
         {
-            case Accepted.All:
-                Console.WriteLine($"Successfully booked for client {booking.Item1}");
-                _state.Remove(orderId, out _);
-                break;
-            case Accepted.Rejected:
-                Console.WriteLine($"Guest {booking.Item1}, unfortunatelly no free table");
-                break;
-            case Accepted.Kitchen:
-            case Accepted.Booking:
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
+            Console.WriteLine($"Successfully booked for client {booking.Item1}");
+            _state.Remove(orderId, out _);
+        }
+        else if (booking.Item2.HasFlag(Accepted.Rejected))
+        {
+            Console.WriteLine($"Guest {booking.Item1}, unfortunatelly no free table");
         }
     }
 }

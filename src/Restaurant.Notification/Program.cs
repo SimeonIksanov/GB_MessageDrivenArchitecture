@@ -23,7 +23,7 @@ class Program
                        services.AddMassTransit(x =>
                        {
                            x.AddConsumer<NotifierTableBookedConsumer>();
-                           x.AddConsumer<KitchenReadyConsumer>();
+                           x.AddConsumer<NotifierKitchenReadyConsumer>();
 
                            x.UsingRabbitMq((context, config) =>
                            {

@@ -4,11 +4,11 @@ using Restaurant.Messaging;
 
 namespace Restaurant.Notification.Consumers;
 
-public class KitchenReadyConsumer : IConsumer<IKitchenReady>
+public class NotifierKitchenReadyConsumer : IConsumer<IKitchenReady>
 {
     private readonly Notifier _notifier;
 
-    public KitchenReadyConsumer(Notifier notifier)
+    public NotifierKitchenReadyConsumer(Notifier notifier)
     {
         _notifier = notifier;
     }

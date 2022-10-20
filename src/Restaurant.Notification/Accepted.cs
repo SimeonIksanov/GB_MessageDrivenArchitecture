@@ -3,8 +3,8 @@
 [Flags]
 public enum Accepted
 {
-    Rejected = 0,
-    Kitchen = 1,
-    Booking = 2,
+    Rejected = 1,
+    Kitchen = 2,
+    Booking = 4,
     All = Kitchen | Booking
 }

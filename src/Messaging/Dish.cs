@@ -1,6 +1,13 @@
 ﻿namespace Restaurant.Messaging
 {
-    public class Dish
+    public enum Dish
     {
+        Coffee,
+        Toasts,
+        Salat,
+        Soup,
+        Meat,
+        Fish,
+        Cereal
     }
 }

@@ -14,6 +14,7 @@ internal class Manager
 
     public void CheckKitchenReady(Guid orderId, Dish? dish)
     {
-        _bus.Publish<IKitchenReady>(new KitchenReady(orderId, true));
+        bool kitchenReady = dish is not Dish.Coffee;
+        _bus.Publish<IKitchenReady>(new KitchenReady(orderId, kitchenReady));
     }
 }

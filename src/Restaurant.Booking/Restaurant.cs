@@ -26,4 +26,10 @@ public class Restaurant
         return table?.SetState(State.Booked) ?? false;
     }
 
+    public async Task CancelBooking(Guid orderId)
+    {
+        var table = _tables.FirstOrDefault(t => t.State == State.Booked);
+        table?.SetState(State.Free);
+        return;
+    }
 }
