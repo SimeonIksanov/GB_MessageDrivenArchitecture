@@ -3,6 +3,7 @@ using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Restaurant.Kitchen.Consumers;
 
 namespace Restaurant.Kitchen;
 

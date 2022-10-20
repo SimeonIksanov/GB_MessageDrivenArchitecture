@@ -1,7 +1,7 @@
 ﻿using MassTransit;
 using Restaurant.Messaging;
 
-namespace Restaurant.Kitchen;
+namespace Restaurant.Kitchen.Consumers;
 
 internal class KitchenTableBookedConsumer : IConsumer<ITableBooked>
 {

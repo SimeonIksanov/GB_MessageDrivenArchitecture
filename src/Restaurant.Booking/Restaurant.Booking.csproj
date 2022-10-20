@@ -17,6 +17,7 @@
     <None Remove="MassTransit.RabbitMQ" />
     <None Remove="MassTransit.AspNetCore" />
     <None Remove="Microsoft.AspNetCore.Hosting.Abstractions" />
+    <None Remove="Consumers\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Messaging\Messaging.csproj" />
@@ -35,5 +36,8 @@
     <None Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Consumers\" />
   </ItemGroup>
 </Project>

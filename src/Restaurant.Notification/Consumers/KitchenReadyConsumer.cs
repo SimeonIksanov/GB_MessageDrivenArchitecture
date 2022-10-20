@@ -2,7 +2,7 @@
 using MassTransit;
 using Restaurant.Messaging;
 
-namespace Restaurant.Notification;
+namespace Restaurant.Notification.Consumers;
 
 public class KitchenReadyConsumer : IConsumer<IKitchenReady>
 {
