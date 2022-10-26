@@ -4,16 +4,16 @@ public class Table
 {
     public int Id { get; }
     public int SeatCount { get; }
-    public State State { get; private set; }
+    public TableState State { get; private set; }
 
     public Table(int id)
     {
         Id = id;
-        State = State.Free;
+        State = TableState.Free;
         SeatCount = Random.Shared.Next(2, 5);
     }
 
-    public bool SetState(State state)
+    public bool SetState(TableState state)
     {
         if (state == State)
             return false;

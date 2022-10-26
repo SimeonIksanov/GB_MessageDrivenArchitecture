@@ -20,16 +20,16 @@ public class Restaurant
                               "Вам придет уведомление");
 
         var table = _tables.FirstOrDefault(t => t.SeatCount > countOfPerson
-                                                        && t.State == State.Free);
+                                                        && t.State == TableState.Free);
 
         await Task.Delay(TimeSpan.FromSeconds(5));
-        return table?.SetState(State.Booked) ?? false;
+        return table?.SetState(TableState.Booked) ?? false;
     }
 
     public async Task CancelBooking(Guid orderId)
     {
-        var table = _tables.FirstOrDefault(t => t.State == State.Booked);
-        table?.SetState(State.Free);
+        var table = _tables.FirstOrDefault(t => t.State == TableState.Booked);
+        table?.SetState(TableState.Free);
         return;
     }
 }

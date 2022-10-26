@@ -26,16 +26,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="MassTransit.RabbitMQ" Version="8.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.2.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Condition=" '$(EnableDefaultCompileItems)' == 'true' " Update="Program.cs">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="appsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <PackageReference Include="MassTransit.AspNetCore" Version="7.3.1" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Consumers\" />

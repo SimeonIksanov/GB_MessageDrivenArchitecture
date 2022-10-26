@@ -5,9 +5,8 @@ using Microsoft.Extensions.Hosting;
 using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
-using Restaurant.Messaging;
+using Restaurant.Messages;
 using Restaurant.Booking.Consumers;
-using MassTransit.Transports.Fabric;
 
 namespace Restaurant.Booking;
 
@@ -27,19 +26,22 @@ class Program
                     {
                         x.UsingRabbitMq((context, config) =>
                         {
+                            config.UseDelayedMessageScheduler();
+                            config.UseInMemoryOutbox();
                             config.ConfigureEndpoints(context);
-                            var uri = hostContext.Configuration.GetSection("RabbitMQ").GetValue<string>("uri");
-                            config.Host(uri);
-
-                            config.Publish<KogdaObedRequest>(cfg => cfg.ExchangeType = "direct");
                         });
-                        x.AddConsumer<BookingKitchenReadyConsumer>();
+                        x.AddConsumer<RestaurantBookingRequestConsumer>();
+                        x.AddConsumer<BookingRequestFaultConsumer>();
+
+                        x.AddSagaStateMachine<RestaurantBookingSaga, RestaurantBooking>()
+                            .InMemoryRepository();
+                        x.AddDelayedMessageScheduler();
+
                     });
 
-                    services.AddOptions<MassTransitHostOptions>()
-                            .Configure(o => o.WaitUntilStarted = true);
-
-                    services.AddSingleton<Restaurant>();
+                    services.AddTransient<RestaurantBooking>();
+                    services.AddTransient<RestaurantBookingSaga>();
+                    services.AddTransient<Restaurant>();
 
                     services.AddHostedService<Worker>();
                 });
