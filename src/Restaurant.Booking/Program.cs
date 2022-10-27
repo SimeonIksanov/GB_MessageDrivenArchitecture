@@ -1,5 +1,13 @@
 ﻿using System.Diagnostics;
-using Restaurant.Booking.Services.Implementation;
+using MassTransit;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using System;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Restaurant.Messaging;
+using Restaurant.Booking.Consumers;
+using MassTransit.Transports.Fabric;
 
 namespace Restaurant.Booking;
 
@@ -8,60 +16,31 @@ class Program
     public static void Main(string[] args)
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
-
-        //var restaurant = new Restaurant(new ConsoleNotifier(TimeSpan.FromSeconds(1)));
-        var restaurant = new Restaurant(new RabbitMQNotifier("goose-01.rmq2.cloudamqp.com"));
-
-        while (true)
-        {
-            Console.WriteLine("Hello! Select menu item\n" +
-                "1 - Book a table. We will notify you with SMS(async)\n" +
-                "2 - Book a table. Hold the line, we will answear you (sync)\n" +
-                "3 - Cancel booking (async)\n" +
-                "4 - Cancel booking (sync)");
-            if (!int.TryParse(Console.ReadLine(), out var choice)
-                || choice is not (1 or 2 or 3 or 4))
-            {
-                Console.WriteLine("Please, choose menu item");
-                continue;
-            }
-            int tableId = -1;
-            if (choice is (3 or 4))
-            {
-                Console.WriteLine("Which table? Enter id: ");
-                if (!int.TryParse(Console.ReadLine(), out tableId))
-                {
-                    Console.WriteLine("Incorrect table id");
-                    continue;
-                }
-            }
-
-            var stopWatch = new Stopwatch();
-            stopWatch.Start();
-
-            switch (choice)
-            {
-                case 1:
-                    restaurant.BookFreeTableAsync(1);
-                    break;
-                case 2:
-                    restaurant.BookFreeTable(1);
-                    break;
-                case 3:
-                    restaurant.CancelBookingAsync(tableId);
-                    break;
-                case 4:
-                    restaurant.CancelBooking(tableId);
-                    break;
-                default:
-                    break;
-            }
-
-            Console.WriteLine("Thanks for contacting us");
-            stopWatch.Stop();
-
-            var ts = stopWatch.Elapsed;
-            Console.WriteLine($"{ts.Seconds:00}:{ts.Milliseconds:00}");
-        }
+        CreateHostBuilder(args).Build().Run();
     }
+
+    private static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureServices((hostContext, services) =>
+                {
+                    services.AddMassTransit(x =>
+                    {
+                        x.UsingRabbitMq((context, config) =>
+                        {
+                            config.ConfigureEndpoints(context);
+                            var uri = hostContext.Configuration.GetSection("RabbitMQ").GetValue<string>("uri");
+                            config.Host(uri);
+
+                            config.Publish<KogdaObedRequest>(cfg => cfg.ExchangeType = "direct");
+                        });
+                        x.AddConsumer<BookingKitchenReadyConsumer>();
+                    });
+
+                    services.AddOptions<MassTransitHostOptions>()
+                            .Configure(o => o.WaitUntilStarted = true);
+
+                    services.AddSingleton<Restaurant>();
+
+                    services.AddHostedService<Worker>();
+                });
 }

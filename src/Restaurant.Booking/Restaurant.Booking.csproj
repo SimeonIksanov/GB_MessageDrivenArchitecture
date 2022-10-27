@@ -13,14 +13,31 @@
     <AssemblyName>RestaurantBooking</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Services\" />
-    <None Remove="Services\Implementation\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Services\" />
-    <Folder Include="Services\Implementation\" />
+    <None Remove="Microsoft.Extensions.Hosting" />
+    <None Remove="MassTransit.RabbitMQ" />
+    <None Remove="MassTransit.AspNetCore" />
+    <None Remove="Microsoft.AspNetCore.Hosting.Abstractions" />
+    <None Remove="Consumers\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Messaging\Messaging.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="8.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.2.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Condition=" '$(EnableDefaultCompileItems)' == 'true' " Update="Program.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Consumers\" />
   </ItemGroup>
 </Project>

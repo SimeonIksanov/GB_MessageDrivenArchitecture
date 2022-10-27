@@ -1,11 +1,12 @@
-﻿using MassTransit;
-using System.Text;
+﻿using System.Text;
+using MassTransit;
+using Messaging;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Configuration;
-using Restaurant.Notification.Consumers;
+using Restaurant.Kitchen.Consumers;
 
-namespace Restaurant.Notification;
+namespace Restaurant.Kitchen;
 
 class Program
 {
@@ -22,21 +23,27 @@ class Program
                    {
                        services.AddMassTransit(x =>
                        {
-                           x.AddConsumer<NotifierTableBookedConsumer>();
-                           x.AddConsumer<NotifierKitchenReadyConsumer>();
+                           x.AddConsumer<KitchenTableBookedConsumer>();
+                           //x.AddConsumer<KitchenKogdaObedConsumer>();
 
                            x.UsingRabbitMq((context, config) =>
                            {
                                config.ConfigureEndpoints(context);
                                var uri = hostContext.Configuration.GetSection("RabbitMQ").GetValue<string>("uri");
                                config.Host(uri);
+
+                               config.ReceiveEndpoint("kogda_obed_queue", c =>
+                               {
+                                   c.ExchangeType = "direct";
+                                   c.Consumer<KitchenKogdaObedConsumer>();
+                               });
                            });
                        });
 
                        services.AddOptions<MassTransitHostOptions>()
                             .Configure(o => o.WaitUntilStarted = true);
 
-                       services.AddSingleton<Notifier>();
+                       services.AddSingleton<Manager>();
                    });
     }
 }

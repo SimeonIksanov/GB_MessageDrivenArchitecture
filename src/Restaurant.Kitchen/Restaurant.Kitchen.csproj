@@ -9,8 +9,8 @@
 
   <ItemGroup>
     <None Remove="Microsoft.Extensions.Hosting" />
-    <None Remove="MassTransit.RabbitMQ" />
     <None Remove="MassTransit.AspNetCore" />
+    <None Remove="MassTransit.RabbitMQ" />
     <None Remove="Consumers\" />
   </ItemGroup>
   <ItemGroup>
