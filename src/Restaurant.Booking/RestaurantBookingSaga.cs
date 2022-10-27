@@ -28,14 +28,24 @@ public sealed class RestaurantBookingSaga : MassTransitStateMachine<RestaurantBo
             x => x.ReadyEventStatus, KitchenReady, TableBooked);
 
         Event(() => BookingRequestFault,
-                x =>
-                    x.CorrelateById(m => m.Message.Message.OrderId));
+            x => x.CorrelateById(m => m.Message.Message.OrderId));
+
+        Event(() => GuestArrived,
+            x => x.CorrelateById(m => m.Message.OrderId));
 
         Schedule(() => BookingExpired,
             tokenIdExpression: x => x.ExpirationId,
             configureSchedule: x =>
             {
-                x.Delay = TimeSpan.FromSeconds(5);
+                x.Delay = TimeSpan.FromSeconds(7);//was 5
+                x.Received = e => e.CorrelateById(context => context.Message.OrderId);
+            });
+
+        Schedule(() => ArrivalExpired,
+            tokenIdExpression: x => x.ArrivalExpirationId,
+            configureSchedule: x =>
+            {
+                x.Delay = TimeSpan.FromSeconds(15);
                 x.Received = e => e.CorrelateById(context => context.Message.OrderId);
             });
 
@@ -46,6 +56,7 @@ public sealed class RestaurantBookingSaga : MassTransitStateMachine<RestaurantBo
                     context.Saga.CorrelationId = context.Message.OrderId;
                     context.Saga.OrderId = context.Message.OrderId;
                     context.Saga.ClientId = context.Message.ClientId;
+                    context.Saga.ArrivalDelay = context.Message.ArrivalDelay;
                 })
                 .Schedule(BookingExpired,
                     context => new BookingExpire(context.Saga)//,
@@ -62,10 +73,21 @@ public sealed class RestaurantBookingSaga : MassTransitStateMachine<RestaurantBo
                         context.Saga.OrderId,
                         context.Saga.ClientId,
                         $"Стол успешно забронирован"))
-                .Finalize(),
+                .Schedule(ArrivalExpired, c => new ArrivalExpire(c.Saga))
+                .TransitionTo(AwaitingGuestArrival),
 
             When(BookingExpired.Received)
-                .Then(context => Console.WriteLine($"[OrderId: {context.Saga.OrderId}] Отмена заказа"))
+                .Then(context => Console.WriteLine($"[OrderId: {context.Saga.OrderId}] Бронь не подтверждена. Отмена заказа"))
+                .Finalize()
+        );
+
+        During(AwaitingGuestArrival,
+            When(GuestArrived)
+                .Unschedule(ArrivalExpired)
+                .Finalize(),
+
+            When(ArrivalExpired.Received)
+                .Then(context => Console.WriteLine($"[OrderId: {context.Saga.OrderId}] Клиент не пришел, отмена"))
                 .Finalize()
         );
 
@@ -82,4 +104,7 @@ public sealed class RestaurantBookingSaga : MassTransitStateMachine<RestaurantBo
     public Schedule<RestaurantBooking, IBookingExpire> BookingExpired { get; private set; }
     public Event BookingApproved { get; private set; }
 
+    public State AwaitingGuestArrival { get; set; }
+    public Event<IGuestArrived> GuestArrived { get; set; }
+    public Schedule<RestaurantBooking, IArrivalExpire> ArrivalExpired { get; set; }
 }

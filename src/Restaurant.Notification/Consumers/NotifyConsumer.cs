@@ -15,7 +15,7 @@ public class NotifyConsumer : IConsumer<INotify>
 
     public Task Consume(ConsumeContext<INotify> context)
     {
-        Console.WriteLine("Restaurant.Notification.Consumers => NotifyConsumer => Consume");
+        //Console.WriteLine("Restaurant.Notification.Consumers => NotifyConsumer => Consume");
         _notifier.Notify(
             context.Message.OrderId,
             context.Message.ClientId,

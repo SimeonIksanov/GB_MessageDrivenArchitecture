@@ -15,7 +15,7 @@ public class RestaurantBookingRequestConsumer : IConsumer<IBookingRequest>
 
     public async Task Consume(ConsumeContext<IBookingRequest> context)
     {
-        Console.WriteLine("Restaurant.Booking.Consumers => RestaurantBookingRequestConsumer => Consume");
+        //Console.WriteLine("Restaurant.Booking.Consumers => RestaurantBookingRequestConsumer => Consume");
         Console.Write($"[OrderId: {context.Message.OrderId}] ");
         var result = await _restaurant.BookFreeTableAsync(1);
 

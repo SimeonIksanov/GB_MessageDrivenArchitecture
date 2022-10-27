@@ -25,9 +25,13 @@ internal class Worker : BackgroundService
             Console.WriteLine("Привет! Желаете забронировать столик?");
 
             var dateTime = DateTime.Now;
+            var bookRequest = new BookingRequest(NewId.NextGuid(), NewId.NextGuid(), null, dateTime);
             await _bus.Publish(
-                (IBookingRequest)new BookingRequest(NewId.NextGuid(), NewId.NextGuid(), null, dateTime),
+                (IBookingRequest)bookRequest,
                 stoppingToken);
+
+            await Task.Delay(TimeSpan.FromSeconds(5 + bookRequest.ArrivalDelay));
+            _bus.Publish((IGuestArrived)new GuestArrived(bookRequest.OrderId));
         }
     }
 }

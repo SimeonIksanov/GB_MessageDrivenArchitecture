@@ -15,4 +15,7 @@ public class RestaurantBooking : SagaStateMachineInstance
     public Guid ClientId { get; set; }
     public int ReadyEventStatus { get; set; }
     public Guid? ExpirationId { get; set; }
+
+    public byte ArrivalDelay { get; set; }
+    public Guid? ArrivalExpirationId { get; set; }
 }
