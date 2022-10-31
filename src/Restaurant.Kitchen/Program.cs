@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using MassTransit;
-using Messaging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -23,20 +22,15 @@ class Program
                    {
                        services.AddMassTransit(x =>
                        {
-                           x.AddConsumer<KitchenTableBookedConsumer>();
-                           //x.AddConsumer<KitchenKogdaObedConsumer>();
+                           x.AddConsumer<KitchenBookingRequestedConsumer>();
+
+                           x.AddDelayedMessageScheduler();
 
                            x.UsingRabbitMq((context, config) =>
                            {
+                               config.UseDelayedMessageScheduler();
+                               config.UseInMemoryOutbox();
                                config.ConfigureEndpoints(context);
-                               var uri = hostContext.Configuration.GetSection("RabbitMQ").GetValue<string>("uri");
-                               config.Host(uri);
-
-                               config.ReceiveEndpoint("kogda_obed_queue", c =>
-                               {
-                                   c.ExchangeType = "direct";
-                                   c.Consumer<KitchenKogdaObedConsumer>();
-                               });
                            });
                        });
 

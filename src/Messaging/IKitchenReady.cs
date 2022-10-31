@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Restaurant.Messaging;
+namespace Restaurant.Messages;
 
 public interface IKitchenReady
 {

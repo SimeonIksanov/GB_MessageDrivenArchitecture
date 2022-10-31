@@ -1,4 +1,4 @@
-﻿namespace Restaurant.Messaging;
+﻿namespace Restaurant.Messages;
 
 public interface ITableBooked
 {

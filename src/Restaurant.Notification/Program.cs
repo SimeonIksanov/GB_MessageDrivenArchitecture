@@ -1,9 +1,9 @@
 ﻿using MassTransit;
-using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Restaurant.Notification.Consumers;
+using System.Text;
 
 namespace Restaurant.Notification;
 
@@ -22,21 +22,17 @@ class Program
                    {
                        services.AddMassTransit(x =>
                        {
-                           x.AddConsumer<NotifierTableBookedConsumer>();
-                           x.AddConsumer<NotifierKitchenReadyConsumer>();
-
+                           x.AddConsumer<NotifyConsumer>();
                            x.UsingRabbitMq((context, config) =>
                            {
                                config.ConfigureEndpoints(context);
-                               var uri = hostContext.Configuration.GetSection("RabbitMQ").GetValue<string>("uri");
-                               config.Host(uri);
                            });
                        });
 
                        services.AddOptions<MassTransitHostOptions>()
                             .Configure(o => o.WaitUntilStarted = true);
 
-                       services.AddSingleton<Notifier>();
+                       services.AddTransient<Notifier>();
                    });
     }
 }

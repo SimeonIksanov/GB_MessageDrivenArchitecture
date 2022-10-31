@@ -1,6 +1,6 @@
 ﻿namespace Restaurant.Booking;
 
-public enum State
+public enum TableState
 {
     /// <summary>
     /// Стол свободен
