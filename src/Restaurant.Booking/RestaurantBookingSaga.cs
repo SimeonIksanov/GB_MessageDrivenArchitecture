@@ -78,6 +78,14 @@ public sealed class RestaurantBookingSaga : MassTransitStateMachine<RestaurantBo
 
             When(BookingExpired.Received)
                 .Then(context => Console.WriteLine($"[OrderId: {context.Saga.OrderId}] Бронь не подтверждена. Отмена заказа"))
+                .Finalize(),
+
+            When(BookingRequestFault)
+                .Then(context => Console.WriteLine($"Ошибочка вышла!"))
+                .Publish(context => (INotify)new Notify(
+                    context.Saga.OrderId,
+                    context.Saga.ClientId,
+                    $"Приносим извинения, стол забронировать не получилось."))
                 .Finalize()
         );
 

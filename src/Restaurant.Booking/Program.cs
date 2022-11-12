@@ -30,8 +30,36 @@ class Program
                             config.UseInMemoryOutbox();
                             config.ConfigureEndpoints(context);
                         });
-                        x.AddConsumer<RestaurantBookingRequestConsumer>();
-                        x.AddConsumer<BookingRequestFaultConsumer>();
+                        x.AddConsumer<RestaurantBookingRequestConsumer>(config =>
+                        {
+                            config.UseMessageRetry(retryConfig =>
+                            {
+                                retryConfig.Incremental(3,
+                                                        TimeSpan.FromSeconds(1),
+                                                        TimeSpan.FromSeconds(2));
+                            });
+                            config.UseScheduledRedelivery(sr =>
+                            {
+                                sr.Intervals(TimeSpan.FromSeconds(10),
+                                             TimeSpan.FromSeconds(20),
+                                             TimeSpan.FromSeconds(30));
+                            });
+                        });
+                        x.AddConsumer<BookingRequestFaultConsumer>(config =>
+                        {
+                            config.UseMessageRetry(retryConfig =>
+                            {
+                                retryConfig.Incremental(3,
+                                                        TimeSpan.FromSeconds(1),
+                                                        TimeSpan.FromSeconds(2));
+                            });
+                            config.UseScheduledRedelivery(sr =>
+                            {
+                                sr.Intervals(TimeSpan.FromSeconds(10),
+                                             TimeSpan.FromSeconds(20),
+                                             TimeSpan.FromSeconds(30));
+                            });
+                        });
 
                         x.AddSagaStateMachine<RestaurantBookingSaga, RestaurantBooking>()
                             .InMemoryRepository();
