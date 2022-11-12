@@ -30,6 +30,12 @@ public sealed class RestaurantBookingSaga : MassTransitStateMachine<RestaurantBo
         Event(() => BookingRequestFault,
             x => x.CorrelateById(m => m.Message.Message.OrderId));
 
+        Event(() => NotificationFailed,
+            x => x.CorrelateById(m => m.Message.Message.OrderId));
+
+        Event(() => BookFailure,
+            x => x.CorrelateById(context => context.Message.OrderId));
+
         Event(() => GuestArrived,
             x => x.CorrelateById(m => m.Message.OrderId));
 
@@ -86,7 +92,10 @@ public sealed class RestaurantBookingSaga : MassTransitStateMachine<RestaurantBo
                     context.Saga.OrderId,
                     context.Saga.ClientId,
                     $"Приносим извинения, стол забронировать не получилось."))
-                .Finalize()
+                .Publish(context => (IBookFailure)new BookFailure(context.Saga.OrderId))
+                .Finalize(),
+            When(NotificationFailed)
+                .Then(context => Console.WriteLine($"Не удалось уведомить"))
         );
 
         During(AwaitingGuestArrival,
@@ -108,6 +117,7 @@ public sealed class RestaurantBookingSaga : MassTransitStateMachine<RestaurantBo
     public Event<IKitchenReady> KitchenReady { get; private set; }
 
     public Event<Fault<IBookingRequest>> BookingRequestFault { get; private set; }
+    public Event<Fault<INotify>> NotificationFailed { get; private set; }
 
     public Schedule<RestaurantBooking, IBookingExpire> BookingExpired { get; private set; }
     public Event BookingApproved { get; private set; }
@@ -115,4 +125,5 @@ public sealed class RestaurantBookingSaga : MassTransitStateMachine<RestaurantBo
     public State AwaitingGuestArrival { get; set; }
     public Event<IGuestArrived> GuestArrived { get; set; }
     public Schedule<RestaurantBooking, IArrivalExpire> ArrivalExpired { get; set; }
+    public Event<IBookFailure> BookFailure { get; private set; }
 }

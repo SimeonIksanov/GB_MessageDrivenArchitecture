@@ -8,6 +8,7 @@
         Soup,
         Meat,
         Fish,
-        Cereal
+        Cereal,
+        Lasagna
     }
 }

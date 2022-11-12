@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Restaurant.Kitchen.Consumers;
+using Restaurant.Messages;
 
 namespace Restaurant.Kitchen;
 
@@ -23,6 +24,22 @@ class Program
                        services.AddMassTransit(x =>
                        {
                            x.AddConsumer<KitchenBookingRequestedConsumer>(config =>
+                           {
+                               config.UseMessageRetry(retryConfig =>
+                               {
+                                   retryConfig.Incremental(3,
+                                                           TimeSpan.FromSeconds(1),
+                                                           TimeSpan.FromSeconds(2));
+                               });
+                               config.UseScheduledRedelivery(sr =>
+                               {
+                                   sr.Intervals(TimeSpan.FromSeconds(10),
+                                                TimeSpan.FromSeconds(20),
+                                                TimeSpan.FromSeconds(30));
+                               });
+                           });
+
+                           x.AddConsumer<KitchenBookFailureConsumer>(config =>
                            {
                                config.UseMessageRetry(retryConfig =>
                                {

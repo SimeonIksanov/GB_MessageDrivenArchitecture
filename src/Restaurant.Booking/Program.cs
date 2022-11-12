@@ -60,6 +60,21 @@ class Program
                                              TimeSpan.FromSeconds(30));
                             });
                         });
+                        x.AddConsumer<BookFailureConsumer>(config =>
+                        {
+                            config.UseMessageRetry(retryConfig =>
+                            {
+                                retryConfig.Incremental(3,
+                                                        TimeSpan.FromSeconds(1),
+                                                        TimeSpan.FromSeconds(2));
+                            });
+                            config.UseScheduledRedelivery(sr =>
+                            {
+                                sr.Intervals(TimeSpan.FromSeconds(10),
+                                             TimeSpan.FromSeconds(20),
+                                             TimeSpan.FromSeconds(30));
+                            });
+                        });
 
                         x.AddSagaStateMachine<RestaurantBookingSaga, RestaurantBooking>()
                             .InMemoryRepository();
