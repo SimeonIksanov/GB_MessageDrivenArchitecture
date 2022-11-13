@@ -14,10 +14,10 @@ internal class KitchenBookingRequestedConsumer : IConsumer<IBookingRequest>
 
     public async Task Consume(ConsumeContext<IBookingRequest> context)
     {
-        if (Random.Shared.Next(1_000, 10_000) > 8_000)
+        if (context.Message.PreOrder == Dish.Lasagna)
         {
             Console.WriteLine(DateTime.Now.ToShortTimeString());
-            throw new Exception("Случилась какая-то беда на кухне!");
+            throw new Exception("Лазанья в заказе!");
         }
 
         var rnd = Random.Shared.Next(1000, 10_000);

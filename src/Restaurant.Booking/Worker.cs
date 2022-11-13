@@ -19,13 +19,15 @@ internal class Worker : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
+        int dishSelector = 0;
         while (!stoppingToken.IsCancellationRequested)
         {
             await Task.Delay(10_000, stoppingToken);
             Console.WriteLine("Привет! Желаете забронировать столик?");
 
             var dateTime = DateTime.Now;
-            var bookRequest = new BookingRequest(NewId.NextGuid(), NewId.NextGuid(), null, dateTime);
+            Dish dish = (Dish)(dishSelector++ % 4);
+            var bookRequest = new BookingRequest(NewId.NextGuid(), NewId.NextGuid(), dish, dateTime);
             await _bus.Publish(
                 (IBookingRequest)bookRequest,
                 stoppingToken);

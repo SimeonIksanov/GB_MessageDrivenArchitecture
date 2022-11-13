@@ -1,14 +1,9 @@
-﻿namespace Restaurant.Messages
+﻿namespace Restaurant.Messages;
+
+public enum Dish
 {
-    public enum Dish
-    {
-        Coffee,
-        Toasts,
-        Salat,
-        Soup,
-        Meat,
-        Fish,
-        Cereal,
-        Lasagna
-    }
+    Coffee = 0,
+    Salat = 1,
+    Cereal = 2,
+    Lasagna = 3
 }
