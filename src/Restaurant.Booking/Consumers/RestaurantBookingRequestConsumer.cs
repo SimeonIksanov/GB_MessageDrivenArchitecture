@@ -1,5 +1,6 @@
 ﻿using System;
 using MassTransit;
+using Microsoft.Extensions.Logging;
 using Restaurant.Messages;
 
 namespace Restaurant.Booking.Consumers;
@@ -8,12 +9,15 @@ public class RestaurantBookingRequestConsumer : IConsumer<IBookingRequest>
 {
     private readonly Restaurant _restaurant;
     private readonly IdempotencyGuard _guard;
+    private readonly ILogger<RestaurantBookingRequestConsumer> _logger;
 
     public RestaurantBookingRequestConsumer(Restaurant restaurant,
-        IdempotencyGuard guard)
+        IdempotencyGuard guard,
+        ILogger<RestaurantBookingRequestConsumer> logger)
     {
         _restaurant = restaurant;
         _guard = guard;
+        _logger = logger;
     }
 
     public async Task Consume(ConsumeContext<IBookingRequest> context)
@@ -22,11 +26,11 @@ public class RestaurantBookingRequestConsumer : IConsumer<IBookingRequest>
 
         if (_guard.CheckOrAdd(context.Message.OrderId, context.MessageId.ToString()))
         {
-            Console.WriteLine("second time");
+            _logger.LogDebug("second time");
             return;
         }
 
-        Console.Write($"[OrderId: {context.Message.OrderId}] ");
+        _logger.LogInformation($"[OrderId: {context.Message.OrderId}] ");
         var result = await _restaurant.BookFreeTableAsync(1);
 
         await context.Publish<ITableBooked>(

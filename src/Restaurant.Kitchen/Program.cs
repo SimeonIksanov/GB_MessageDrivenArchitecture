@@ -1,8 +1,10 @@
 ﻿using System.Text;
 using MassTransit;
+using MassTransit.Audit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Restaurant.Kitchen.Audit;
 using Restaurant.Kitchen.Consumers;
 using Restaurant.Messages;
 
@@ -21,6 +23,10 @@ class Program
         return Host.CreateDefaultBuilder()
             .ConfigureServices((hostContext, services) =>
             {
+                services.AddSingleton<IMessageAuditStore, AuditStore>();
+                var serviceProvider = services.BuildServiceProvider();
+                var auditStore = serviceProvider.GetRequiredService<IMessageAuditStore>();
+
                 services.AddMassTransit(x =>
                 {
                     x.AddConsumer<KitchenBookingRequestedConsumer>(config =>
@@ -62,6 +68,8 @@ class Program
                         config.UseDelayedMessageScheduler();
                         config.UseInMemoryOutbox();
                         config.ConfigureEndpoints(context);
+                        config.ConnectSendAuditObservers(auditStore);
+                        config.ConnectConsumeAuditObserver(auditStore);
                     });
                 });
 

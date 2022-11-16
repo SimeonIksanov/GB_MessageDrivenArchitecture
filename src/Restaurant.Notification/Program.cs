@@ -4,6 +4,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Restaurant.Notification.Consumers;
 using System.Text;
+using MassTransit.Audit;
+using Restaurant.Notification.Audit;
 
 namespace Restaurant.Notification;
 
@@ -20,6 +22,10 @@ class Program
         return Host.CreateDefaultBuilder()
             .ConfigureServices((hostContext, services) =>
             {
+                services.AddSingleton<IMessageAuditStore, AuditStore>();
+                var serviceProvider = services.BuildServiceProvider();
+                var auditStore = serviceProvider.GetRequiredService<IMessageAuditStore>();
+
                 services.AddMassTransit(x =>
                 {
                     x.AddConsumer<NotifyConsumer>(config =>
@@ -40,6 +46,8 @@ class Program
                     x.UsingRabbitMq((context, config) =>
                     {
                         config.ConfigureEndpoints(context);
+                        config.ConnectSendAuditObservers(auditStore);
+                        config.ConnectConsumeAuditObserver(auditStore);
                     });
                 });
 

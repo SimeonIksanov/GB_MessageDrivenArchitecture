@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Restaurant.Messages;
 using Restaurant.Booking.Consumers;
+using MassTransit.Audit;
+using Restaurant.Booking.Audit;
 
 namespace Restaurant.Booking;
 
@@ -22,6 +24,10 @@ class Program
         Host.CreateDefaultBuilder(args)
             .ConfigureServices((hostContext, services) =>
             {
+                services.AddSingleton<IMessageAuditStore, AuditStore>();
+                var serviceProvider = services.BuildServiceProvider();
+                var auditStore = serviceProvider.GetRequiredService<IMessageAuditStore>();
+
                 services.AddMassTransit(x =>
                 {
                     x.UsingRabbitMq((context, config) =>
@@ -29,6 +35,8 @@ class Program
                         config.UseDelayedMessageScheduler();
                         config.UseInMemoryOutbox();
                         config.ConfigureEndpoints(context);
+                        config.ConnectSendAuditObservers(auditStore);
+                        config.ConnectConsumeAuditObserver(auditStore);
                     });
                     x.AddConsumer<RestaurantBookingRequestConsumer>(config =>
                     {
