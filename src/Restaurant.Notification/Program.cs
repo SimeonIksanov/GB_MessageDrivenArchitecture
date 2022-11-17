@@ -6,6 +6,7 @@ using Restaurant.Notification.Consumers;
 using System.Text;
 using MassTransit.Audit;
 using Restaurant.Notification.Audit;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Restaurant.Notification;
 
@@ -20,41 +21,6 @@ class Program
     private static IHostBuilder CreateHostBuilder()
     {
         return Host.CreateDefaultBuilder()
-            .ConfigureServices((hostContext, services) =>
-            {
-                services.AddSingleton<IMessageAuditStore, AuditStore>();
-                var serviceProvider = services.BuildServiceProvider();
-                var auditStore = serviceProvider.GetRequiredService<IMessageAuditStore>();
-
-                services.AddMassTransit(x =>
-                {
-                    x.AddConsumer<NotifyConsumer>(config =>
-                    {
-                        config.UseMessageRetry(retryConfig =>
-                        {
-                            retryConfig.Incremental(3,
-                                                    TimeSpan.FromSeconds(1),
-                                                    TimeSpan.FromSeconds(2));
-                        });
-                        config.UseScheduledRedelivery(sr =>
-                        {
-                            sr.Intervals(TimeSpan.FromSeconds(10),
-                                        TimeSpan.FromSeconds(20),
-                                        TimeSpan.FromSeconds(30));
-                        });
-                    });
-                    x.UsingRabbitMq((context, config) =>
-                    {
-                        config.ConfigureEndpoints(context);
-                        config.ConnectSendAuditObservers(auditStore);
-                        config.ConnectConsumeAuditObserver(auditStore);
-                    });
-                });
-
-                services.AddOptions<MassTransitHostOptions>()
-                    .Configure(o => o.WaitUntilStarted = true);
-
-                services.AddTransient<Notifier>();
-            });
+            .ConfigureWebHostDefaults(builder => builder.UseStartup<Startup>());
     }
 }

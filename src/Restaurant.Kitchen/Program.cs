@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using MassTransit;
 using MassTransit.Audit;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -21,64 +22,9 @@ class Program
     private static IHostBuilder CreateHostBuilder()
     {
         return Host.CreateDefaultBuilder()
-            .ConfigureServices((hostContext, services) =>
+            .ConfigureWebHostDefaults(builder =>
             {
-                services.AddSingleton<IMessageAuditStore, AuditStore>();
-                var serviceProvider = services.BuildServiceProvider();
-                var auditStore = serviceProvider.GetRequiredService<IMessageAuditStore>();
-
-                services.AddMassTransit(x =>
-                {
-                    x.AddConsumer<KitchenBookingRequestedConsumer>(config =>
-                    {
-                        config.UseMessageRetry(retryConfig =>
-                        {
-                            retryConfig.Incremental(3,
-                                                    TimeSpan.FromSeconds(1),
-                                                    TimeSpan.FromSeconds(2));
-                        });
-                        config.UseScheduledRedelivery(sr =>
-                        {
-                            sr.Intervals(TimeSpan.FromSeconds(10),
-                                        TimeSpan.FromSeconds(20),
-                                        TimeSpan.FromSeconds(30));
-                        });
-                    });
-
-                    x.AddConsumer<KitchenBookFailureConsumer>(config =>
-                    {
-                        config.UseMessageRetry(retryConfig =>
-                        {
-                            retryConfig.Incremental(3,
-                                                    TimeSpan.FromSeconds(1),
-                                                    TimeSpan.FromSeconds(2));
-                        });
-                        config.UseScheduledRedelivery(sr =>
-                        {
-                            sr.Intervals(TimeSpan.FromSeconds(10),
-                                        TimeSpan.FromSeconds(20),
-                                        TimeSpan.FromSeconds(30));
-                        });
-                    });
-
-                    x.AddDelayedMessageScheduler();
-
-                    x.UsingRabbitMq((context, config) =>
-                    {
-                        config.UseDelayedMessageScheduler();
-                        config.UseInMemoryOutbox();
-                        config.ConfigureEndpoints(context);
-                        config.ConnectSendAuditObservers(auditStore);
-                        config.ConnectConsumeAuditObserver(auditStore);
-                    });
-                });
-
-                services.AddOptions<MassTransitHostOptions>()
-                    .Configure(o => o.WaitUntilStarted = true);
-
-                services.AddSingleton<Manager>();
-                services.AddSingleton<IModelRepository<RequestModel>, InMemoryRepository<RequestModel>>();
-                services.AddTransient<IdempotencyGuard>();
+                builder.UseStartup<Startup>();
             });
     }
 }
