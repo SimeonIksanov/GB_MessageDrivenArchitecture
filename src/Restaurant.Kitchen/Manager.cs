@@ -19,4 +19,9 @@ internal class Manager
         //_bus.Publish<IKitchenReady>(new KitchenReady(orderId, kitchenReady));
         return true;
     }
+
+    public void CancelKitchedOrder(Guid orderId)
+    {
+
+    }
 }

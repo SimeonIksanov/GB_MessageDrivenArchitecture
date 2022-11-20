@@ -14,7 +14,11 @@ internal class KitchenBookingRequestedConsumer : IConsumer<IBookingRequest>
 
     public async Task Consume(ConsumeContext<IBookingRequest> context)
     {
-        //Console.WriteLine("Restaurant.Kitchen.Consumers => KitchenBookingRequestedConsumer => Consume");
+        if (context.Message.PreOrder == Dish.Lasagna)
+        {
+            Console.WriteLine(DateTime.Now.ToShortTimeString());
+            throw new Exception("Лазанья в заказе!");
+        }
 
         var rnd = Random.Shared.Next(1000, 10_000);
         Console.WriteLine($"[OrderId: {context.Message.OrderId}] Проверка на кухне займет {rnd / 1000.0} секунд");
