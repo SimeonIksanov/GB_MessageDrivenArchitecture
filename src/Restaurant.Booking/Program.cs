@@ -19,73 +19,75 @@ class Program
     }
 
     private static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureServices((hostContext, services) =>
+        Host.CreateDefaultBuilder(args)
+            .ConfigureServices((hostContext, services) =>
+            {
+                services.AddMassTransit(x =>
                 {
-                    services.AddMassTransit(x =>
+                    x.UsingRabbitMq((context, config) =>
                     {
-                        x.UsingRabbitMq((context, config) =>
+                        config.UseDelayedMessageScheduler();
+                        config.UseInMemoryOutbox();
+                        config.ConfigureEndpoints(context);
+                    });
+                    x.AddConsumer<RestaurantBookingRequestConsumer>(config =>
+                    {
+                        config.UseMessageRetry(retryConfig =>
                         {
-                            config.UseDelayedMessageScheduler();
-                            config.UseInMemoryOutbox();
-                            config.ConfigureEndpoints(context);
+                            retryConfig.Incremental(3,
+                                                    TimeSpan.FromSeconds(1),
+                                                    TimeSpan.FromSeconds(2));
                         });
-                        x.AddConsumer<RestaurantBookingRequestConsumer>(config =>
+                        config.UseScheduledRedelivery(sr =>
                         {
-                            config.UseMessageRetry(retryConfig =>
-                            {
-                                retryConfig.Incremental(3,
-                                                        TimeSpan.FromSeconds(1),
-                                                        TimeSpan.FromSeconds(2));
-                            });
-                            config.UseScheduledRedelivery(sr =>
-                            {
-                                sr.Intervals(TimeSpan.FromSeconds(10),
-                                             TimeSpan.FromSeconds(20),
-                                             TimeSpan.FromSeconds(30));
-                            });
+                            sr.Intervals(TimeSpan.FromSeconds(10),
+                                            TimeSpan.FromSeconds(20),
+                                            TimeSpan.FromSeconds(30));
                         });
-                        x.AddConsumer<BookingRequestFaultConsumer>(config =>
+                    });
+                    x.AddConsumer<BookingRequestFaultConsumer>(config =>
+                    {
+                        config.UseMessageRetry(retryConfig =>
                         {
-                            config.UseMessageRetry(retryConfig =>
-                            {
-                                retryConfig.Incremental(3,
-                                                        TimeSpan.FromSeconds(1),
-                                                        TimeSpan.FromSeconds(2));
-                            });
-                            config.UseScheduledRedelivery(sr =>
-                            {
-                                sr.Intervals(TimeSpan.FromSeconds(10),
-                                             TimeSpan.FromSeconds(20),
-                                             TimeSpan.FromSeconds(30));
-                            });
+                            retryConfig.Incremental(3,
+                                                    TimeSpan.FromSeconds(1),
+                                                    TimeSpan.FromSeconds(2));
                         });
-                        x.AddConsumer<BookFailureConsumer>(config =>
+                        config.UseScheduledRedelivery(sr =>
                         {
-                            config.UseMessageRetry(retryConfig =>
-                            {
-                                retryConfig.Incremental(3,
-                                                        TimeSpan.FromSeconds(1),
-                                                        TimeSpan.FromSeconds(2));
-                            });
-                            config.UseScheduledRedelivery(sr =>
-                            {
-                                sr.Intervals(TimeSpan.FromSeconds(10),
-                                             TimeSpan.FromSeconds(20),
-                                             TimeSpan.FromSeconds(30));
-                            });
+                            sr.Intervals(TimeSpan.FromSeconds(10),
+                                            TimeSpan.FromSeconds(20),
+                                            TimeSpan.FromSeconds(30));
                         });
-
-                        x.AddSagaStateMachine<RestaurantBookingSaga, RestaurantBooking>()
-                            .InMemoryRepository();
-                        x.AddDelayedMessageScheduler();
-
+                    });
+                    x.AddConsumer<BookFailureConsumer>(config =>
+                    {
+                        config.UseMessageRetry(retryConfig =>
+                        {
+                            retryConfig.Incremental(3,
+                                                    TimeSpan.FromSeconds(1),
+                                                    TimeSpan.FromSeconds(2));
+                        });
+                        config.UseScheduledRedelivery(sr =>
+                        {
+                            sr.Intervals(TimeSpan.FromSeconds(10),
+                                            TimeSpan.FromSeconds(20),
+                                            TimeSpan.FromSeconds(30));
+                        });
                     });
 
-                    services.AddTransient<RestaurantBooking>();
-                    services.AddTransient<RestaurantBookingSaga>();
-                    services.AddTransient<Restaurant>();
+                    x.AddSagaStateMachine<RestaurantBookingSaga, RestaurantBooking>()
+                        .InMemoryRepository();
+                    x.AddDelayedMessageScheduler();
 
-                    services.AddHostedService<Worker>();
                 });
+
+                services.AddTransient<RestaurantBooking>();
+                services.AddTransient<RestaurantBookingSaga>();
+                services.AddTransient<Restaurant>();
+
+                services.AddSingleton<IModelRepository<RequestModel>, InMemoryRepository<RequestModel>>();
+                services.AddTransient<IdempotencyGuard>();
+                services.AddHostedService<Worker>();
+            });
 }

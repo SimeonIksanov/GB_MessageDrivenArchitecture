@@ -6,14 +6,23 @@ namespace Restaurant.Kitchen.Consumers;
 internal class KitchenBookingRequestedConsumer : IConsumer<IBookingRequest>
 {
     private readonly Manager _manager;
+    private readonly IdempotencyGuard _guard;
 
-    public KitchenBookingRequestedConsumer(Manager manager)
+    public KitchenBookingRequestedConsumer(Manager manager,
+        IdempotencyGuard guard)
     {
         _manager = manager;
+        _guard = guard;
     }
 
     public async Task Consume(ConsumeContext<IBookingRequest> context)
     {
+        if (_guard.CheckOrAdd(context.Message.OrderId, context.MessageId.ToString()))
+        {
+            Console.WriteLine("second time");
+            return;
+        }
+
         if (context.Message.PreOrder == Dish.Lasagna)
         {
             Console.WriteLine(DateTime.Now.ToShortTimeString());
