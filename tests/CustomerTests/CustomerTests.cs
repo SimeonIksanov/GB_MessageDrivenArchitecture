@@ -6,6 +6,8 @@ using Restaurant.Messages;
 using Restaurant.Kitchen;
 using MassTransit.Testing;
 using Restaurant.Kitchen.Consumers;
+using Restaurant.Notification.Consumers;
+using Restaurant.Notification;
 
 namespace CustomerTests;
 
@@ -21,16 +23,18 @@ public class CustomerTests
         _provider = new ServiceCollection()
             .AddMassTransitTestHarness(cfg =>
             {
-                cfg.AddConsumer<RestaurantBookingRequestConsumer>();
-                cfg.AddConsumer<KitchenBookingRequestedConsumer>();
+                cfg.AddConsumer<RestaurantBookingRequestConsumer>(c => c.UseInMemoryOutbox());
+                cfg.AddConsumer<KitchenBookingRequestedConsumer>(c => c.UseInMemoryOutbox());
+                cfg.AddConsumer<NotifyConsumer>(c => c.UseInMemoryOutbox());
                 cfg.AddSagaStateMachine<RestaurantBookingSaga, RestaurantBooking>()
                     .InMemoryRepository();
             })
             .AddLogging()
             .AddTransient<Restaurant.Booking.Restaurant>()
             .AddSingleton<IModelRepository<RequestModel>, InMemoryRepository<RequestModel>>()
-            .AddSingleton<IdempotencyGuard>()
-            .AddSingleton<Manager>()
+            .AddTransient<IdempotencyGuard>()
+            .AddTransient<Manager>()
+            .AddTransient<Notifier>()
             .BuildServiceProvider(true);
         _harness = _provider.GetTestHarness();
 
@@ -84,9 +88,8 @@ public class CustomerTests
         var orderId = NewId.NextGuid();
         var clientId = NewId.NextGuid();
 
-        await _harness.Bus.Publish(new BookingRequest(orderId, clientId, Dish.Coffee, DateTime.Now));
+        await PublishBookingRequestMessage(orderId, clientId);
 
-        Assert.That(await _harness.Published.Any<IBookingRequest>());
         Assert.That(await _harness.Consumed.Any<IBookingRequest>());
 
         var sagaHarness = _provider
@@ -108,7 +111,49 @@ public class CustomerTests
         Assert.That(await _harness.Published.Any<IKitchenReady>());
         Assert.That(await _harness.Published.Any<INotify>());
 
-        await _harness.OutputTimeline(TestContext.Out, options => options.Now().IncludeAddress());
+        //await _harness.OutputTimeline(TestContext.Out, options => options.Now().IncludeAddress());
+    }
+
+    [Test]
+    public async Task Booking_request_consumer_published_kitchen_ready_message()
+    {
+        var orderId = NewId.NextGuid();
+        var clientId = NewId.NextGuid();
+        await PublishBookingRequestMessage(orderId, clientId);
+
+        var consumer = _harness.GetConsumerHarness<KitchenBookingRequestedConsumer>();
+
+        Assert.That(consumer
+            .Consumed
+            .Select<IBookingRequest>()
+            .Any(x => x.Context.Message.OrderId == orderId), Is.True);
+
+        Assert.That(_harness.Published
+            .Select<IKitchenReady>()
+            .Any(x => x.Context.Message.OrderId == orderId), Is.True);
+    }
+
+    [Test]
+    public async Task NotificationMessageConsumed()
+    {
+        var orderId = NewId.NextGuid();
+        var clientId = NewId.NextGuid();
+
+        await _harness.Bus.Publish(new Notify(orderId, clientId, "test message"));
+        Assert.That(await _harness.Published.Any<INotify>());
+
+        var consumer = _harness.GetConsumerHarness<NotifyConsumer>();
+
+        Assert.That(consumer
+            .Consumed
+            .Select<INotify>()
+            .Any(x => x.Context.Message.OrderId == orderId), Is.True);
+    }
+
+    private async Task PublishBookingRequestMessage(Guid orderId, Guid clientId)
+    {
+        await _harness.Bus.Publish(new BookingRequest(orderId, clientId, Dish.Coffee, DateTime.Now));
+        Assert.That(await _harness.Published.Any<IBookingRequest>());
     }
 }
 
