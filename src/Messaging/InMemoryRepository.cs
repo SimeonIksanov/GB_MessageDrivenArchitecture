@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 
 namespace Restaurant.Messages;
-
-public interface IModelRepository<T>
-{
-    void AddOrUpdate(T entity);
-    IEnumerable<T> Get();
-}
 
 public class InMemoryRepository<T> : IModelRepository<T> where T : RequestModel
 {

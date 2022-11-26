@@ -8,8 +8,12 @@
 
   <ItemGroup>
     <None Remove="RabbitMQ.Client" />
+    <None Remove="Interfaces\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="RabbitMQ.Client" Version="6.4.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Interfaces\" />
   </ItemGroup>
 </Project>
